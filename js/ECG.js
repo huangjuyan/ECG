@@ -349,6 +349,12 @@ var ECG = (function () {
              */
             drawBc : function () {
                 // todo 在绘制的时候要注意考虑doc.marginL
+                var canvas     = doc.ecgDom.bc,     // 背景canvas对象
+                    cellWidth  = doc.cellWidth,    // 单元格的宽度
+                    cellHeight = doc.cellHeight,   // 单元格的高度
+                    ifPoint    = doc.ifPoint,       // 是否绘制背景中点标志位
+                    context    = doc.context.bcContext;
+
                 // 检测canvas是否存在
                 {
                     if (!canvas) {
@@ -356,12 +362,6 @@ var ECG = (function () {
                         return false;
                     }
                 }
-
-                var canvas     = doc.ecgDom.bc,     // 背景canvas对象
-                    cellWidth  = doc.cellWidth,    // 单元格的宽度
-                    cellHeight = doc.cellHeight,   // 单元格的高度
-                    ifPoint    = doc.ifPoint,       // 是否绘制背景中点标志位
-                    context    = doc.context.bcContext;
 
                 // 先清空画布
                 {
