@@ -14,3 +14,10 @@ obj {
 	height: 500,	// ECG容器gaodu，默认为高度的一半
 }
 ```
+
+<h3>chart.drawBc()方法</h3>
+
+```javascript
+chart.drawBc(canvas, width, height, marginL, ifPoint);
+
+```

@@ -5,7 +5,8 @@
  */
 
 $(function () {
-    var ecg = ECG.chart.init({
+    ECG.chart.init({
         id : 'canvas'
     });
+    ECG.chart.drawBc(ECG.doc.ecgDom.bc);
 });

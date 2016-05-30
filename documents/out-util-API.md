@@ -1,6 +1,6 @@
 <h2>ECG.js文档-outUtil部分</h2>
 
-**注：该文档为ECG.js中outUtil部分的文档，chart对象可通过ECG.outUtil获取。下面使用的outUtil对象默认为ECG.outUtil。**
+**注：该文档为ECG.js中outUtil部分的文档，util对象可通过ECG.util获取。下面使用的outUtil对象默认为ECG.util。**
 
 <h3>1、outUtil.setECGWH()方法</h3>
 
@@ -51,4 +51,27 @@ ECG.doc.ecgDom.bc以及ECG.doc.ecgDom.fc的样式。
 
 返回值：
 boolean: true | false； 设置成功返回true，否则返回false
+```
+
+<h3>4、outUtil.setMarginL()方法</h3>
+
+```javascript
+outUtil.setMarginL(marginL);
+
+参数：
+marginL：number；要设置的左边距的距离，必须为数字
+
+返回值：boolean，设置成功则返回true；
+```
+
+<h3>5、outUtil.setCell()方法</h3>
+
+设置doc.ecgDom.bc中单元格的大小。
+
+```javascript
+outUtil.setCell(cw, ch);
+
+参数：
+cw：number，	// 单元格的宽度
+ch：number		// 单元格的高度
 ```

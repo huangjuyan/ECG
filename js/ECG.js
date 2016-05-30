@@ -9,7 +9,7 @@ var ECG = (function () {
          */
         var doc = {
             // 存储ECG的dom元素
-            ecgDom   : {
+            ecgDom : {
                 // canvas容器
                 c  : {},
                 // 背景 | 后面的canvas
@@ -17,11 +17,27 @@ var ECG = (function () {
                 // 心电 | 前面的canvas
                 fc : {}
             },
-            width    : 1000,
-            height   : 500,
-            fcWidth  : 1000,
-            fcHeight : 500,
-            isInit   : false
+
+            context : {
+                bcContext : null,
+                fcContext : null
+            },
+
+            width      : 1000,    // ECG容器的宽度
+            height     : 600,     // ECG容器的高度
+            marginL    : 100,      // canvas左边边距,用来存放说明性的文字
+            tWidth     : 1100,     // canvas元素的总宽度
+            fcWidth    : 1000,    // fc宽度
+            fcHeight   : 600,     // fc高度
+            cellWidth  : 40,       // 背景单元格宽度
+            cellHeight : 40,       // 背景单元格高度
+
+            borderColor : 'red', // 边框颜色
+            borderWidth : 1,    // 边框宽度
+            lineColor   : 'red',   // 背景线条颜色
+            lineWidth   : 1,    // 背景线条宽度
+            isInit      : false,   // ECG对象是否初始化
+            ifPoint     : false    // ECG.ecgDom.bc是否要画点
         };
 
         /**
@@ -40,88 +56,6 @@ var ECG = (function () {
                 position : 'absolute',
                 left     : 0,
                 top      : 0
-            },
-        };
-
-        /**
-         * 工具对象,存放工具函数,可对外公开的outUtil部分
-         */
-        var outUtil = {
-            /**
-             * 设置ECG容器的宽度和高度,暂时不支持设置doc.ecgDom.fc的宽度和高度
-             *
-             * @param param
-             */
-            setECGWH : function (param) {
-                if (typeof param !== 'object') {
-                    console.log('setECGWH参数错误');
-                    return;
-                } else {
-                    var ecgDom = doc.ecgDom;
-                    // 如果设置了宽度则逐个设置宽度
-                    if ('width' in param) {
-                        var width = param.width;
-                        ecgDom.c.width = param.width;
-                        ecgDom.bc.width = param.width;
-                    }
-                    // 如果设置高度则逐个设置高度
-                    if ('height' in param) {
-                        var height = param.height;
-                        ecgDom.c.height = param.height;
-                        ecgDom.bc.height = param.height;
-                    }
-                }
-            },
-
-            /**
-             * 设置ECG.doc.ecgDom.fc的宽度和高度
-             * @param param
-             */
-            setFcWH : function (param) {
-                if (typeof param !== 'object') {
-                    console.log('setFcWH参数错误');
-                    return;
-                } else {
-                    if ('width' in param) {
-                        doc.ecgDom.fc.width = param.width;
-                    }
-                    if ('height' in param) {
-                        doc.ecgDom.fc.height = param.height;
-                    }
-                }
-            },
-
-            /**
-             * 设置ECG容器的样式
-             *
-             * @param param 存放样式ECG容器样式的对象
-             * @returns {boolean} 设置成功返回true,否则返回false
-             */
-            setStyle : function (param) {
-                if (!ECG.doc.isInit) {
-                    console.log('ECG对象未初始化');
-                    return false;
-                }
-
-                if (typeof param !== 'object') {
-                    console.log('setStyle参数错误');
-                    return false;
-                } else {
-                    // 这里最后的s指代style
-                    var keys = Object.keys(param),
-                        len  = keys.length;
-                    for (var i = 0; i < len; i++) {
-                        var key = keys[ i ];
-                        var subKeys = Object.keys(param[ key ]),
-                            subLen  = subKeys.length;
-                        for (var j = 0; j < subLen; j++) {
-                            var subKey = subKeys[ j ];
-                            ECG.doc.ecgDom[ key ].style[ subKey ] = param[ key ][ subKey ];
-                        }
-                    }
-
-                    return true;
-                }
             }
         };
 
@@ -167,29 +101,42 @@ var ECG = (function () {
             },
 
             /**
-             * 设置ECG容器的宽度和高度,如果没有则使用默认值,默认1000*500
+             * 设置ECG容器参数,如果没有则使用默认值
              *
-             * @param obj{width: number, height: number},宽度和高度为数字
+             * @param obj  {width: number, height: number},宽度和高度为数字
              */
-            initECGWH : function (obj) {
+            initECGProperty : function (obj) {
                 if (typeof obj === 'object') {
+                    // 设置ECG容器的宽度
                     if ('width' in obj) {
                         doc.ecgDom.width = obj.width;
+                        doc.width = obj.width;
                     }
+                    // 设置doc.ecgDom.bc的左边距
+                    if ('marginL' in obj) {
+                        doc.marginL = obj.marginL;
+                    }
+                    // 设置ECG容器的高度
                     if ('height' in obj) {
                         doc.ecgDom.height = obj.height;
+                        doc.height = obj.height;
                     } else {
                         doc.ecgDom.height = doc.ecgDom.width / 2;
                     }
+
+                    // 设置doc.tWidth
+                    {
+                        doc.tWidth = doc.width + doc.marginL;
+                    }
                 } else {
-                    console.log('initECGWH参数错误');
+                    console.log('initECGProperty参数错误');
                 }
             },
 
             /**
-             * 初始化canvas
+             * 初始化canvas,js生成canvas dom元素,设置canvas的属性并返回
              *
-             * @param obj   canvas配置信息
+             * @param param   canvas配置信息
              * @param isBc 是否是心电背景
              */
             initCanvas : function (param, isBc) {
@@ -200,16 +147,138 @@ var ECG = (function () {
 
                 var canvas = document.createElement('canvas');
 
-                canvas.width = param.width;
                 canvas.height = param.height;
 
+                /**
+                 * 分别处理bc和fc,
+                 * bc的宽度会增加doc.marginL,用来存放说明文字
+                 * fc左边的边距会增加doc.marginL,便于与bc对齐
+                 */
                 if (isBc) {
+                    canvas.width = param.width + doc.marginL;
                     canvas.id = 'bc';
                 } else {
+                    canvas.width = param.width;
+                    canvas.style.marginLeft = doc.marginL + 'px';
                     canvas.id = 'fc';
                 }
 
                 return canvas;
+            }
+        };
+
+        /**
+         * 工具对象,存放工具函数,可对外公开的outUtil部分
+         */
+        var outUtil = {
+            /**
+             * 设置ECG容器的宽度和高度,暂时不支持设置doc.ecgDom.fc的宽度和高度
+             * 这里在设置宽度的时候会加上doc.marginL的宽度
+             *
+             * @param param
+             */
+            setECGWH : function (param) {
+                if (typeof param !== 'object') {
+                    console.log('setECGWH参数错误');
+                    return false;
+                } else {
+                    var ecgDom = doc.ecgDom;
+                    // 如果设置了宽度则逐个设置宽度
+                    if ('width' in param) {
+                        var width = param.width + doc.marginL;
+                        ecgDom.c.width = width;
+                        ecgDom.bc.width = width;
+                    }
+                    // 如果设置高度则逐个设置高度
+                    if ('height' in param) {
+                        var height = param.height;
+                        ecgDom.c.height = height;
+                        ecgDom.bc.height = height;
+                    }
+                }
+            },
+
+            /**
+             * 设置ECG.doc.ecgDom.fc的宽度和高度
+             * @param param
+             */
+            setFcWH : function (param) {
+                if (typeof param !== 'object') {
+                    console.log('setFcWH参数错误');
+                    return false;
+                } else {
+                    if ('width' in param) {
+                        doc.ecgDom.fc.width = param.width;
+                    }
+                    if ('height' in param) {
+                        doc.ecgDom.fc.height = param.height;
+                    }
+                }
+            },
+
+            /**
+             * 设置ECG容器的样式
+             *
+             * @param param 存放样式ECG容器样式的对象
+             * @returns {boolean} 设置成功返回true,否则返回false
+             */
+            setStyle : function (param) {
+                if (!ECG.doc.isInit) {
+                    console.log('ECG对象未初始化');
+                    return false;
+                }
+
+                if (typeof param !== 'object') {
+                    console.log('setStyle参数错误');
+                    return false;
+                } else {
+                    // 这里最后的s指代style
+                    var keys = Object.keys(param),
+                        len  = keys.length;
+                    for (var i = 0; i < len; i++) {
+                        var key = keys[ i ];
+                        var subKeys = Object.keys(param[ key ]),
+                            subLen  = subKeys.length;
+                        for (var j = 0; j < subLen; j++) {
+                            var subKey = subKeys[ j ];
+                            ECG.doc.ecgDom[ key ].style[ subKey ] = param[ key ][ subKey ];
+                        }
+                    }
+
+                    return true;
+                }
+            },
+
+            /**
+             * 设置bc和fc的左边距, bc的左边距用来放置说明性的文字,fc的左边距用来与bc对齐
+             *
+             * @param marginL
+             * @returns {boolean}
+             */
+            setMarginL : function (marginL) {
+                if (typeof marginL !== 'number') {
+                    console.log('setMarginL参数错误,无效的参数');
+                    return false;
+                }
+                doc.marginL = marginL;
+                doc.ecgDom.bc.width = doc.width + marginL;
+                doc.tWidth = doc.width + marginL;
+                chart.drawBc();
+                doc.ecgDom.fc.style.marginLeft = marginL + 'px';
+
+                return true;
+            },
+
+            /**
+             * 设置背景中单元格的大小
+             *
+             * @param cw 单元格的宽度
+             * @param ch 单元格的高度
+             */
+            setCell : function (cw, ch) {
+                doc.cellWidth = cw;
+                doc.cellHeight = ch;
+                chart.drawBc();
             }
         };
 
@@ -240,7 +309,7 @@ var ECG = (function () {
 
                     // 配置容器的大小,高度默认为宽度的一半
                     {
-                        innerUtil.initECGWH(obj);
+                        innerUtil.initECGProperty(obj);
                     }
 
                     // 分别生成背景和心电用的canvas
@@ -250,6 +319,12 @@ var ECG = (function () {
 
                         doc.ecgDom.c.appendChild(doc.ecgDom.bc);
                         doc.ecgDom.c.appendChild(doc.ecgDom.fc);
+                    }
+
+                    // 初始化doc.context.bcContext与doc.context.fcContext
+                    {
+                        doc.context.bcContext = doc.ecgDom.bc.getContext('2d');
+                        doc.context.fcContext = doc.ecgDom.fc.getContext('2d');
                     }
 
                     // 标志ECG已被初始化
@@ -263,8 +338,91 @@ var ECG = (function () {
                     }
                 } else {
                     console.log('配置信息错误,找不到ECG容器。');
-                    return;
+                    return false;
                 }
+            },
+
+            /**
+             * 绘制doc.ecgDom.bc
+             *
+             * @returns {boolean}
+             */
+            drawBc : function () {
+                // todo 在绘制的时候要注意考虑doc.marginL
+                // 检测canvas是否存在
+                {
+                    if (!canvas) {
+                        console.log('drawBc参数错误,未设置canvas或者找不到指定的canvas');
+                        return false;
+                    }
+                }
+
+                var canvas     = doc.ecgDom.bc,     // 背景canvas对象
+                    cellWidth  = doc.cellWidth,    // 单元格的宽度
+                    cellHeight = doc.cellHeight,   // 单元格的高度
+                    ifPoint    = doc.ifPoint,       // 是否绘制背景中点标志位
+                    context    = doc.context.bcContext;
+
+                // 先清空画布
+                {
+                    context.clearRect(doc.marginL, 0, doc.tWidth, doc.height);
+                }
+                // 绘制背景的边框
+                {
+                    context.beginPath();
+                    context.strokeStyle = doc.borderColor;
+                    context.strokeWidth = doc.borderWidth;
+                    // 这里绘制边框时左边要留出doc.marginL的宽度,用来放置说明文字
+                    context.rect(doc.marginL, 0, doc.width, doc.height);
+                    context.stroke();
+                }
+                // 绘制背景的列
+                {
+                    if (!cellWidth) {
+                        cellWidth = 40;
+                    }
+                    context.beginPath();
+                    context.strokeStyle = doc.lineColor;
+                    context.strokeWidth = doc.lineWidth;
+                    /**
+                     * 这里i的初始值应为width+doc.marginL,
+                     * 因为边框距离canvas左边距为doc.marginL,
+                     */
+                    var i      = cellWidth + doc.marginL,
+                        tWidth = doc.width + doc.marginL;
+
+                    for (i; i < tWidth; i += cellWidth) {
+                        context.moveTo(i + 0.5, 0);
+                        context.lineTo(i + 0.5, doc.height);
+                    }
+                    context.stroke();
+                }
+                // 绘制背景的行
+                {
+                    if (!cellHeight) {
+                        cellHeight = width;
+                    }
+                    context.beginPath();
+                    context.strokeStyle = doc.lineColor;
+                    context.strokeWidth = doc.lineWidth;
+                    for (var j = cellHeight; j < doc.height; j += cellHeight) {
+                        /**
+                         * 这里行的起始位置的横坐标为doc.marginL,
+                         * 因为canvas的border是从距离左边doc.marginL的地方开始画的
+                         */
+                        context.moveTo(doc.marginL, j + 0.5);
+                        context.lineTo(doc.tWidth, j + 0.5);
+                    }
+                    context.stroke();
+                }
+                // 绘制背景中的点
+                {
+                    if (ifPoint) {
+                        console.log('未实现绘制背景中的点功能, chart.drawBc');
+                    }
+                }
+
+                return true;
             }
         };
 

@@ -35,12 +35,12 @@ id：String		// 必填，ECG容器的id
 boolean：存在则返回true，不存在返回false
 ```
 
-<h3>3、innerUtil.initECGWH()方法</h3>
+<h3>3、innerUtil.initECGProperty()方法</h3>
 
-初始化ECG容器的宽度和高度，如果参数错误或者未设置，则使用默认值。
+设置ECG容器参数，如果参数错误或者未设置，则使用默认值。
 
 ```javascript
-innerUtil.initECGWH(obj);
+innerUtil.initECGProperty(obj);
 
 参数:
 obj {
