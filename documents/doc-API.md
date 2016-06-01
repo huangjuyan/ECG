@@ -58,3 +58,9 @@ doc.ecgDom.bc中单元格的宽度。
 
 <h3>12、doc.cellHeight</h3>
 doc.ecgDom.bc中单元格的高度。
+
+<h3>13、doc.pointColor</h3>
+doc.ecgDom.bc中单元格中点的颜色
+
+<h3>13、doc.pointWidth</h3>
+doc.ecgDom.bc中单元格中点的宽度

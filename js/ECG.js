@@ -34,10 +34,13 @@ var ECG = (function () {
 
             borderColor : 'red', // 边框颜色
             borderWidth : 1,    // 边框宽度
-            lineColor   : 'red',   // 背景线条颜色
+            lineColor   : 'orange',   // 背景线条颜色
             lineWidth   : 1,    // 背景线条宽度
+            dotColor    : 'orange',     // 点的样式
+            dotWidth    : 2,        // 点的大小
             isInit      : false,   // ECG对象是否初始化
-            ifPoint     : false    // ECG.ecgDom.bc是否要画点
+            ifPoint     : true,      // ECG.ecgDom.bc是否要画点
+            bcDataUrl   : null
         };
 
         /**
@@ -49,13 +52,15 @@ var ECG = (function () {
         var css = {
             // c中存放ECG最外层容器的样式,其中的所有样式都会应用到c容器上
             c  : {
-                position : 'relative'
+                width            : doc.tWidth + 'px',
+                height           : doc.height + 20 + 'px',
+                overflowX        : 'scroll',
+                overflowY        : 'hidden',
+                backgroundRepeat : 'no-repeat'
             },
             // bc中存放ECG中bc的样式,其中所有的样式都会应用到bc容器上
             bc : {
-                position : 'absolute',
-                left     : 0,
-                top      : 0
+                display : 'none',
             }
         };
 
@@ -64,26 +69,6 @@ var ECG = (function () {
          * @type {{}}
          */
         var innerUtil = {
-            /**
-             * 将鼠标在window中的绝对坐标转换为在canvas中相对canvas边界的坐标
-             * @param canvas canvas对象
-             * @param x 鼠标在window中的坐标x
-             * @param y 鼠标在window中的坐标y
-             * @returns {{x: number, y: number}}
-             */
-            windowToCanvas : function (canvas, x, y) {
-                var bbox = canvas.getBoundingClientRect();
-
-                return {
-                    x : (x - bbox.left
-                        ) * (canvas.width / bbox.width
-                        ),
-                    y : (y - bbox.top
-                        ) * (canvas.height / bbox.height
-                        )
-                };
-            },
-
             /**
              * 检测ECG容器是否声明
              * @param id
@@ -265,6 +250,7 @@ var ECG = (function () {
                 doc.tWidth = doc.width + marginL;
                 chart.drawBc();
                 doc.ecgDom.fc.style.marginLeft = marginL + 'px';
+                doc.ecgDom.c.style.width = doc.tWidth + 'px';
 
                 return true;
             },
@@ -373,7 +359,7 @@ var ECG = (function () {
                     context.strokeStyle = doc.borderColor;
                     context.strokeWidth = doc.borderWidth;
                     // 这里绘制边框时左边要留出doc.marginL的宽度,用来放置说明文字
-                    context.rect(doc.marginL, 0, doc.width, doc.height);
+                    context.rect(doc.marginL - 0.5, 0, doc.width, doc.height);
                     context.stroke();
                 }
                 // 绘制背景的列
@@ -381,21 +367,30 @@ var ECG = (function () {
                     if (!cellWidth) {
                         cellWidth = 40;
                     }
-                    context.beginPath();
                     context.strokeStyle = doc.lineColor;
-                    context.strokeWidth = doc.lineWidth;
                     /**
                      * 这里i的初始值应为width+doc.marginL,
                      * 因为边框距离canvas左边距为doc.marginL,
                      */
                     var i      = cellWidth + doc.marginL,
-                        tWidth = doc.width + doc.marginL;
+                        tWidth = doc.width + doc.marginL,
+                        num    = 1;
 
                     for (i; i < tWidth; i += cellWidth) {
-                        context.moveTo(i + 0.5, 0);
-                        context.lineTo(i + 0.5, doc.height);
+                        if (num % 5 == 0) {
+                            context.beginPath();
+                            context.strokeWidth = 1;
+                            context.moveTo(i, 0);
+                            context.lineTo(i, doc.height);
+                        } else {
+                            context.beginPath();
+                            context.strokeWidth = 1;
+                            context.moveTo(i + 0.5, 0);
+                            context.lineTo(i + 0.5, doc.height);
+                        }
+                        context.stroke();
+                        num++;
                     }
-                    context.stroke();
                 }
                 // 绘制背景的行
                 {
@@ -405,25 +400,56 @@ var ECG = (function () {
                     context.beginPath();
                     context.strokeStyle = doc.lineColor;
                     context.strokeWidth = doc.lineWidth;
+                    var num = 1;
                     for (var j = cellHeight; j < doc.height; j += cellHeight) {
                         /**
                          * 这里行的起始位置的横坐标为doc.marginL,
                          * 因为canvas的border是从距离左边doc.marginL的地方开始画的
                          */
-                        context.moveTo(doc.marginL, j + 0.5);
+                        if (num % 5 != 0) {
+                            context.moveTo(doc.marginL, j + 0.5);
+                        } else {
+                            context.moveTo(doc.marginL, j);
+                        }
                         context.lineTo(doc.tWidth, j + 0.5);
+                        num++;
                     }
                     context.stroke();
                 }
                 // 绘制背景中的点
                 {
                     if (ifPoint) {
-                        console.log('未实现绘制背景中的点功能, chart.drawBc');
+                        var dotMargin = Math.floor(doc.cellWidth / 5);
+                        var context = doc.context.bcContext;
+                        context.fillStyle = doc.dotColor;
+
+                        var i = dotMargin + doc.marginL;
+                        for (i; i < doc.tWidth; i += dotMargin) {
+                            if (((i - doc.marginL
+                                 ) % 40
+                                ) != 0) {    // 列分隔线处不打点
+                                for (var j = dotMargin; j < doc.height; j += dotMargin) {
+                                    if ((j % 40
+                                        ) != 0) {    // 行分割线处不打点
+                                        context.rect(i, j, doc.dotWidth, doc.dotWidth);
+                                    }
+                                }
+                            }
+                        }
+                        context.fill();
                     }
+                }
+                // 绘制左边说明文字
+                {
+                    console.log('chart.drawBc: 绘制左边说明性文字未实现');
+                }
+                {
+                    doc.bcDataUrl = doc.ecgDom.bc.toDataURL();
+                    doc.ecgDom.c.style.backgroundImage = 'url(' + doc.bcDataUrl + ')';
                 }
 
                 return true;
-            }
+            },
         };
 
         // 返回
