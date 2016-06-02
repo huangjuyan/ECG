@@ -25,22 +25,53 @@ var ECG = (function () {
 
             width      : 1000,    // ECG容器的宽度
             height     : 600,     // ECG容器的高度
-            marginL    : 100,      // canvas左边边距,用来存放说明性的文字
+            marginL    : 1,      // canvas左边边距,用来存放说明性的文字
             tWidth     : 1100,     // canvas元素的总宽度
             fcWidth    : 1000,    // fc宽度
             fcHeight   : 600,     // fc高度
             cellWidth  : 40,       // 背景单元格宽度
             cellHeight : 40,       // 背景单元格高度
 
-            borderColor : 'red', // 边框颜色
-            borderWidth : 1,    // 边框宽度
-            lineColor   : 'orange',   // 背景线条颜色
-            lineWidth   : 1,    // 背景线条宽度
-            dotColor    : 'orange',     // 点的样式
-            dotWidth    : 2,        // 点的大小
+            lineColor        : 'orange',   // 背景线条颜色
+            lineWidth        : 1,    // 背景线条宽度
+            dotColor         : 'orange',     // 点的样式
+            dotWidth         : 2,        // 点的大小,
+            descriptionWords : {
+                style    : {    // descriptionWords描述文字样式配置
+                    v1  : {
+                        ifDraw : true,
+                        color  : '#333',
+                        index  : 1,
+                        text   : 'v1',
+                    },
+                    v5  : {
+                        ifDraw : true,
+                        color  : '#333',
+                        index  : 2,
+                        text   : 'v5'
+                    }
+                    ,
+                    avf : {
+                        ifDraw : true,
+                        color  : '#333',
+                        index  : 3,
+                        text   : 'avf'
+                    },
+                },
+                position : 4 // 可选项, 描述文字在自己的区域内第几行
+            },
+            // 主要存放doc.ecgDom.bc的配置信息,后面会将前面的配置逐步放到bc中
+            bc               : {
+                border : {
+                    style : 'red',  // 边框样式
+                    width : 1       // 边框宽度
+                }
+            },
+
+            rowsPerLine : 5,        // 每条心电图占用几行
             isInit      : false,   // ECG对象是否初始化
             ifPoint     : true,      // ECG.ecgDom.bc是否要画点
-            bcDataUrl   : null
+            bcDataUrl   : null     // ECG.ecgDom.bc绘制内容的导出的base64格式的图片
         };
 
         /**
@@ -149,6 +180,19 @@ var ECG = (function () {
                 }
 
                 return canvas;
+            },
+
+            /**
+             * 将doc.ecgDom.bc中绘制的内容导出为base64格式,
+             * 然后设置为ECG最外层容器的背景
+             *
+             * @returns {boolean}
+             */
+            setECGBackground : function () {
+                doc.bcDataUrl = doc.ecgDom.bc.toDataURL();
+                doc.ecgDom.c.style.backgroundImage = 'url(' + doc.bcDataUrl + ')';
+
+                return true;
             }
         };
 
@@ -265,6 +309,112 @@ var ECG = (function () {
                 doc.cellWidth = cw;
                 doc.cellHeight = ch;
                 chart.drawBc();
+            },
+
+            /**
+             * 设置左边描述性文字的样式
+             *
+             * @param obj 该参数的结构参照doc.descriptionWords
+             * @returns {boolean} 成功返回true,否则返回false
+             */
+            setDescriptionWordsStyle : function (obj) {
+                if (typeof obj !== 'object') {
+                    console.log('The type of param must be object.');
+                    return false;
+                }
+
+                var descriptionWords = doc.descriptionWords.style;
+                var keys = Object.keys(obj);
+                var length = keys.length;
+                for (var i = 0; i < length; i++) {
+                    var key = keys[ i ];
+                    if (descriptionWords.hasOwnProperty(key)) {
+                        var subDW = descriptionWords[ key ];
+                        var subKeys = Object.keys(obj[ key ]);
+                        var subLength = subKeys.length;
+                        for (var j = 0; j < subLength; j++) {
+                            var subKey = subKeys[ j ];
+                            if (subDW.hasOwnProperty(subKey)) {
+                                subDW[ subKey ] = obj[ key ][ subKey ];
+                            }
+                        }
+                    }
+                }
+
+                if (!chart.drawBc()) {
+                    return false;
+                }
+
+                return true;
+            },
+
+            /**
+             * 该方法用于设置doc.ecgDom.bc中左边介绍心电的文字
+             *
+             * @returns {boolean}
+             */
+            setDescriptionWords : function () {
+                var position = doc.descriptionWords.position;
+                var style = doc.descriptionWords.style;
+                var keys = Object.keys(style);
+
+                // 保存原来的context
+                var bcContext = doc.context.bcContext;
+                bcContext.save();
+
+                var length = keys.length;
+                for (var i = 0; i < length; i++) {
+                    var key = keys[ i ];
+                    var subStyle = style[ key ];
+                    // 判断是否绘制该说明文字
+                    if (!subStyle.ifDraw) {
+                        continue;
+                    }
+                    // 检测说明文字的位置是否正确, 正常情况position < doc.rowsPerLine
+                    if (0 > (doc.rowsPerLine - position
+                        )) {
+                        console.log(
+                            'error: the value of position is more than rowsPerLine, outUtil.setDescriptionWords');
+                        continue;
+                    }
+
+                    bcContext.beginPath();
+                    // 修改字体样式
+                    bcContext.fillStyle = subStyle.color;
+                    // x,y分别为fillText的横坐标和纵坐标
+                    var x = doc.marginL;
+                    var y = (subStyle.index * doc.rowsPerLine -
+                             (doc.rowsPerLine - position
+                             )
+                            ) * doc.cellHeight;
+                    bcContext.fillText(subStyle.text, x, y);
+                }
+
+                // 还原context
+                bcContext.restore();
+
+                if (!innerUtil.setECGBackground()) {
+                    return false;
+                }
+
+                return true;
+            },
+
+            /**
+             * 设置背景中的边框样式
+             */
+            setBorder : function () {
+                var border = doc.bc.border;
+                var context = doc.context.bcContext;
+                context.beginPath();
+                context.strokeStyle = border.style;
+                context.strokeWidth = border.width;
+                // 这里绘制边框时左边要留出doc.marginL的宽度,用来放置说明文字
+                context.rect(doc.marginL - 0.5, 0, doc.width, doc.height);
+                context.stroke();
+
+                // 将绘制的内容设置为ECG最外层容器的背景
+                innerUtil.setECGBackground();
             }
         };
 
@@ -355,12 +505,7 @@ var ECG = (function () {
                 }
                 // 绘制背景的边框
                 {
-                    context.beginPath();
-                    context.strokeStyle = doc.borderColor;
-                    context.strokeWidth = doc.borderWidth;
-                    // 这里绘制边框时左边要留出doc.marginL的宽度,用来放置说明文字
-                    context.rect(doc.marginL - 0.5, 0, doc.width, doc.height);
-                    context.stroke();
+                    outUtil.setBorder(context);
                 }
                 // 绘制背景的列
                 {
@@ -441,11 +586,11 @@ var ECG = (function () {
                 }
                 // 绘制左边说明文字
                 {
-                    console.log('chart.drawBc: 绘制左边说明性文字未实现');
+                    outUtil.setDescriptionWords();
                 }
+                // 将doc.ecgDom.bc的内容导出为图片, 并设置为ECG最外层容器的背景
                 {
-                    doc.bcDataUrl = doc.ecgDom.bc.toDataURL();
-                    doc.ecgDom.c.style.backgroundImage = 'url(' + doc.bcDataUrl + ')';
+                    innerUtil.setECGBackground();
                 }
 
                 return true;

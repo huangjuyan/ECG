@@ -41,10 +41,10 @@ context: {
 
 bcContext | fcContext分别为ECG.doc.ecgDom.bc｜ECG.doc.ecgDom.fc的语境context，初始值为null。
 
-<h3>8、borderColor ｜ lineColor</h3>
+<h3>8、 lineColor</h3>
 分别为背景边框与背景分割线的颜色，默认为红色，背景点的颜色与lineColor相同
 
-<h3>8、borderWidth ｜ lineWidth</h3>
+<h3>8、lineWidth</h3>
 分别为背景边框与背景分割线的宽度，默认为1px，背景点默认为一个像素的点
 
 <h3>9、doc.marginL</h3>
@@ -64,3 +64,54 @@ doc.ecgDom.bc中单元格中点的颜色
 
 <h3>13、doc.pointWidth</h3>
 doc.ecgDom.bc中单元格中点的宽度
+
+<h3>14、doc.descriptionWordsStyle</h3>
+doc.ecgDom.bc中描述三条心电图多说明文字配置，该属性是一个js对象，具体结构如下：
+
+```javascript
+descriptionWords : { 
+                style    : {    // descriptionWords描述文字样式配置
+                    v1  : {
+                        ifDraw : true,
+                        color  : '#333',
+                        index  : 1,
+                        text   : 'v1',
+                    },
+                    v5  : {
+                        ifDraw : true,
+                        color  : '#333',
+                        index  : 2,
+                        text   : 'v5'
+                    }
+                    ,
+                    avf : {
+                        ifDraw : true,
+                        color  : '#333',
+                        index  : 3,
+                        text   : 'avf'
+                    },
+                },
+                position : 4 // 可选项, 描述文字在自己的区域内第几行
+			},
+```
+
+* ifDraw: 是否画该描述文字
+* color: 该描述文字的颜色
+* text: 该描述文字的内容,可选参数，默认为其键值。
+* position: 该属性描述每行描述文字在自己区域内的第几行处绘制，默认在第四行
+
+<h3>15、doc.rowsPerLine</h3>
+
+doc.rowsPerLine表示每条心电图占用几行。
+
+<h3>16、doc.bc</h3>
+后面会将与doc.ecgDom.bc相关的样式设置等信息放到doc.bc对象中。该对象的结构如下：
+
+```javascript
+doc.bc = {
+	border: {
+		style: '#red',	// border的样式，可以是一个css颜色字符串
+		width: number		// border的宽度
+	}
+}
+```

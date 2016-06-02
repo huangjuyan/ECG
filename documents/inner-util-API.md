@@ -61,3 +61,14 @@ isBC: boolean;	// 该canvas是背景还是前景
 返回值：
 canvas：domObj	// 生成的dom元素
 ```
+
+<h3>5、innerUtil.setECGBackground()方法</h3>
+
+该方法将doc.ecgDom.bc中绘制的内容导出为base64格式, 然后设置为ECG最外层容器的背景。
+
+```javascript
+innerUtil.setECGBackground();
+
+返回值：
+设置成功则返回true；
+```

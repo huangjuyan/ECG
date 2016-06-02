@@ -75,3 +75,43 @@ outUtil.setCell(cw, ch);
 cw：number，	// 单元格的宽度
 ch：number		// 单元格的高度
 ```
+
+<h3>6、outUtil.setDescriptionWordsStyle()方法</h3>
+
+设置doc.ecgDom.bc中左边描述心电图的描述性文字的样式。
+
+```javascript
+outUtil.setDescriptionWordsStyle(obj);
+
+参数：
+obj = {
+	v1: {
+		ifDraw: true,		// 是否显示该行描述文字
+		color: 'red',		// 改行描述文字的颜色，值为CSS支持的颜色字符串即可
+		index: 1,			// 该行描述文字的位置
+		text: 'v1'		// 该行描述文字的内容
+	},
+	v5: {
+		...
+	}
+}
+```
+
+<h3>7、outUtil.setDescriptionWords()方法</h3>
+
+该方法用于设置doc.ecgDom.bc中左边介绍心电的文字。该方法不需要参数，在函数内部根据outUtil.setDescriptionWordsStyle中设置的样式进行绘制。该方法会调用innerUtil.setECGBackground方法讲绘制好的内容设置为ECG最外层容器的背景。
+
+```javascript
+outUtil.setDescriptionWords();
+
+返回值：
+boolean：true | false
+```
+
+<h3>8、outUtil.setBorder()方法</h3>
+
+该方法用于设置doc.ecgDom.bc中边框的样式，该方法在内部先在bc中重新绘制border，然后调用innerUtil.setECGBackground方法将bc中的内容导出图片并设置为ECG最外层容器的背景。该方法在内部直接调用的doc.context.bcContext，所以该方法依赖doc.context.bcContext。
+
+```javascript
+outUtil.setBorder();
+```

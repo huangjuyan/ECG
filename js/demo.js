@@ -8,5 +8,5 @@ $(function () {
     ECG.chart.init({
         id : 'canvas'
     });
-    ECG.chart.drawBc(ECG.doc.ecgDom.bc);
+    ECG.chart.drawBc();
 });
