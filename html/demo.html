@@ -7,10 +7,32 @@
     <script rel="script" type="text/javascript" src="../js/zepto.min.js"></script>
     <script rel="script" type="text/javascript" src="../js/ECG.js"></script>
     <script rel="script" type="text/javascript" src="../js/demo.js"></script>
+
+    <style>
+        .btn-wrap {
+            text-align: right;
+        }
+        #begin {
+            height: 30px;
+            width: 50px;
+            line-height: 30px;
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 <body>
 
 <!-- canvas container -->
+<div class="btn-wrap">
+    <button id="begin">开始</button>
+</div>
 <div id="canvas"></div>
+<script>
+    $(function () {
+        $('#begin').on('click', function () {
+            ECG.chart.drawFc();
+        });
+    });
+</script>
 </body>
 </html>

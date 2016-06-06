@@ -25,11 +25,11 @@ var ECG = (function () {
             },
 
             width      : 1000,    // ECG容器的宽度
-            height     : 600,     // ECG容器的高度
+            height     : 800,     // ECG容器的高度
             marginL    : 1,      // canvas左边边距,用来存放说明性的文字
             tWidth     : 1001,     // canvas元素的总宽度
-            fcWidth    : 10000,    // fc宽度
-            fcHeight   : 600,     // fc高度
+            fcWidth    : 14400,    // fc宽度
+            fcHeight   : 800,     // fc高度
             cellWidth  : 40,       // 背景单元格宽度
             cellHeight : 40,       // 背景单元格高度
 
@@ -39,25 +39,31 @@ var ECG = (function () {
             dotWidth         : 2,        // 点的大小,
             descriptionWords : {
                 style    : {    // descriptionWords描述文字样式配置
-                    v1  : {
+                    v1    : {
                         ifDraw : true,
                         color  : '#333',
                         index  : 1,
                         text   : 'v1',
                     },
-                    v5  : {
+                    v5    : {
                         ifDraw : true,
                         color  : '#333',
                         index  : 2,
                         text   : 'v5'
                     }
                     ,
-                    avf : {
+                    avf   : {
                         ifDraw : true,
                         color  : '#333',
                         index  : 3,
                         text   : 'avf'
                     },
+                    pacer : {
+                        ifDraw : true,
+                        color  : '#333',
+                        index  : 4,
+                        text   : 'pacer'
+                    }
                 },
                 position : 4 // 可选项, 描述文字在自己的区域内第几行
             },
@@ -70,24 +76,30 @@ var ECG = (function () {
             },
             // 主要存放心电图当前的位置
             coordinate       : {
-                v1  : {
+                v1    : {
                     x : 1,
                     y : 160
                 },
-                v5  : {
+                v5    : {
                     x : 1,
                     y : 360
                 },
-                avf : {
+                avf   : {
                     x : 1,
                     y : 560
+                },
+                pacer : {
+                    x : 1,
+                    y : 760
                 }
             },
 
             rowsPerLine : 5,        // 每条心电图占用几行
             isInit      : false,   // ECG对象是否初始化
             ifPoint     : true,      // ECG.ecgDom.bc是否要画点
-            bcDataUrl   : null     // ECG.ecgDom.bc绘制内容的导出的base64格式的图片
+            bcDataUrl   : null,     // ECG.ecgDom.bc绘制内容的导出的base64格式的图片
+
+            rate : 200      // 采样频率
         };
 
         /**
@@ -170,15 +182,10 @@ var ECG = (function () {
              * @param param   canvas配置信息
              * @param isBc 是否是心电背景
              */
-            initCanvas : function (param, isBc) {
-                if (typeof param !== 'object') {
-                    console.log('初始化canvas失败,传入的参数错误。');
-                    return;
-                }
-
+            initCanvas : function (isBc) {
                 var canvas = document.createElement('canvas');
 
-                canvas.height = param.height;
+                canvas.height = doc.height;
 
                 /**
                  * 分别处理bc和fc,
@@ -186,10 +193,10 @@ var ECG = (function () {
                  * fc左边的边距会增加doc.marginL,便于与bc对齐,且fc的宽度来自doc.fcWidth
                  */
                 if (isBc) {
-                    canvas.width = param.width + doc.marginL;
+                    canvas.width = doc.width + doc.marginL;
                     canvas.id = 'bc';
                 } else {
-                    canvas.width = param.fcWidth;
+                    canvas.width = doc.fcWidth;
                     canvas.style.marginLeft = doc.marginL + 'px';
                     canvas.id = 'fc';
                 }
@@ -506,8 +513,8 @@ var ECG = (function () {
 
                     // 分别生成背景和心电用的canvas
                     {
-                        doc.ecgDom.bc = innerUtil.initCanvas(doc, true);
-                        doc.ecgDom.fc = innerUtil.initCanvas(doc, false);
+                        doc.ecgDom.bc = innerUtil.initCanvas(true);
+                        doc.ecgDom.fc = innerUtil.initCanvas(false);
 
                         doc.ecgDom.c.appendChild(doc.ecgDom.bc);
                         doc.ecgDom.c.appendChild(doc.ecgDom.fc);
@@ -653,14 +660,17 @@ var ECG = (function () {
                 return true;
             },
 
-            drawV1  : function (x, y) {
+            drawV1    : function (x, y) {
                 innerUtil.drawECG('v1', x, y);
             },
-            drawV5  : function (x, y) {
+            drawV5    : function (x, y) {
                 innerUtil.drawECG('v5', x, y);
             },
-            drawAvf : function () {
+            drawAvf   : function (x, y) {
                 innerUtil.drawECG('avf', x, y);
+            },
+            drawPacer : function (x, y) {
+                innerUtil.drawECG('pacer', x, y);
             },
 
             /**
@@ -678,18 +688,34 @@ var ECG = (function () {
                     context.clearRect(0, 0, fcWidth, fcHeight);
                 }
 
-                // 测试绘制v1心电
+                // 生成测试数据存储在数组中
                 {
+                    var arr = [];
+                    var arr2 = [];
                     var x = doc.marginL;
-                    var intervalId = setInterval(function () {
-                        if (x >= doc.fcWidth) {
-                            clearInterval(intervalId);
-                            return false;
-                        }
-                        x += 2;
-                        var y = Math.floor(Math.random() * 100);
-                        chart.drawV5(x, y);
-                    }, 10);
+                    var y = 0;
+                    var space = doc.cellWidth * 5 / doc.rate;
+                    while (x < doc.fcWidth) {
+                        y = Math.floor(Math.random() * 100);
+                        arr.push(y);
+                        x += space;
+                    }
+                }
+
+                // 分别绘制三条心电
+                {
+                    var len = arr.length;
+
+                    var x = 0; // reset x
+
+                    for (var i = 0; i < len; i++) {
+                        x += space;
+                        y = arr[ i ];
+                        this.drawV1(x + 0.5, y);
+                        this.drawV5(x + 0.5, y);
+                        this.drawAvf(x + 0.5, y);
+                        this.drawPacer(x + 0.5, y);
+                    }
                 }
 
                 return true;
