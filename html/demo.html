@@ -10,8 +10,9 @@
 
     <style>
         .btn-wrap {
-            text-align: right;
+            text-align: left;
         }
+
         #begin {
             height: 30px;
             width: 50px;
@@ -28,8 +29,8 @@
 </div>
 <div id="canvas"></div>
 <script>
-    $(function () {
-        $('#begin').on('click', function () {
+    $(function() {
+        $('#begin').on('click', function() {
             ECG.chart.drawFc();
         });
     });
