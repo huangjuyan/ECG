@@ -27,7 +27,7 @@ chart.drawBc();
 返回值：｛boolean｝
 ```
 
-<h3>chart.drawV1() | chart.drawV5() | chart.drawAVF()方法</h3>
+<h3>chart.drawV1() | chart.drawV5() | chart.drawAVF() | chart.drawPacer()方法</h3>
 
 这三个方法分别用于绘制指定的心电图线段，但是内部均调用innerUtil.drawECG()方法，只不过参数```name```的值不同。
 
@@ -39,6 +39,20 @@ x：要绘制的心电线段终点的x坐标
 y：要绘制的心电线段终点的y坐标
 
 返回值：无
+```
+
+<h3>chart.clearFc()方法</h3>
+
+该方法用于将ECG.doc.context.fcContext中绘制的内容全部清空，准备绘制下一波心电
+
+```javascript
+chart.clearFc();
+
+参数：无
+该方法会在函数内部直接从ECG.doc中获取fcContext及其相关的参数。
+
+返回值：
+{{boolean}} 清空成功返回true
 ```
 
 <h3>chart.drawFc()方法</h3>

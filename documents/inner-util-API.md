@@ -98,3 +98,24 @@ y：本次绘制终点y坐标
 
 返回值：无
 ```
+
+<h3>8、innerUtil.isArray()方法</h3>
+
+```javascript
+innerUtil.isArray(obj);
+
+参数：
+obj：要检测的对象
+
+返回值：如果被检测对象为数组返回true，否则返回false
+```
+<h3>9、innerUtil.isString()方法</h3>
+
+```javascript
+innerUtil.isString(obj);
+
+参数：
+obj：要检测的对象
+
+返回值：如果被检测对象为字符串则返回true，否则返回false
+```
