@@ -55,4 +55,37 @@ chart.clearFc();
 {{boolean}} 清空成功返回true
 ```
 
+<h3>chart.getClearCoordinate()方法</h3>
+
+该方法用于获取要清除的ECG.context.fcContext中绘制的指定心电图的坐标
+
+```javascript
+chart.getClearCoordinate(name);
+
+参数：
+name：要获取的指定心电的名字
+
+返回值：
+{*} | false：找不到指定的心电时返回false，找到指定的心电时返回值如下：
+{
+	clearH1: number,	// 要清除的心电的区域最小y坐标值
+	clearH2: number,	// 要清除的心电的区域最大y坐标值
+	widht: number		// 要清除的心电的区域最大x坐标值
+}
+```
+
+<h3>chart.clearECG()方法</h3>
+
+该方法用于清除指定的心电图线条。
+
+```javascript
+chart.clearECG(name);
+
+参数：
+name：可以为字符串或者数组，例'avf', ['v1', 'pacer', 'avf']。
+
+返回值：
+清除成功返回true，否则返回false
+```
+
 <h3>chart.drawFc()方法</h3>

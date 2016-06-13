@@ -25,13 +25,13 @@ var ECG = (function() {
         },
 
         width:      1000,    // ECG容器的宽度
-        height:     800,     // ECG容器的高度
+        height:     1000,     // ECG容器的高度
         marginL:    1,      // canvas左边边距,用来存放说明性的文字
         tWidth:     1001,     // canvas元素的总宽度
         fcWidth:    14400,    // fc宽度
         fcHeight:   800,     // fc高度
-        cellWidth:  40,       // 背景单元格宽度
-        cellHeight: 40,       // 背景单元格高度
+        cellWidth:  50,       // 背景单元格宽度
+        cellHeight: 50,       // 背景单元格高度
 
         lineColor:        'orange',   // 背景线条颜色
         lineWidth:        1,    // 背景线条宽度
@@ -99,7 +99,7 @@ var ECG = (function() {
         ifPoint:     true,      // ECG.ecgDom.bc是否要画点
         bcDataUrl:   null,     // ECG.ecgDom.bc绘制内容的导出的base64格式的图片
 
-        rate: 200      // 采样频率
+        rate: 125      // 采样频率
     };
 
     /**
@@ -290,8 +290,8 @@ var ECG = (function() {
         /**
          * 获取所有选中的要显示的心电的名字
          *
-         * @param checkboxName
-         * @returns {Array}
+         * @param checkboxNam
+         * @returns {Array}e
          */
         getAllSelectedEcg: function(checkboxName) {
             var queryStr = 'input[name="' + checkboxName + '"]:checked';
@@ -761,16 +761,61 @@ var ECG = (function() {
             innerUtil.drawECG('pacer', x, y);
         },
 
+        /**
+         * 获取当前要清除的心电的区域
+         * 
+         * @param name 要清除的心电的名字
+         * @returns {*} 要清除心电区域的坐标
+         */
+        getClearCoordinate: function(name) {
+            if(doc.descriptionWords.style[name]) {
+                var obj = doc.descriptionWords.style[name];
+                var index = obj.index;
+                var rowsPerLine = doc.rowsPerLine;
+                var clearH1 = (index -1) * rowsPerLine * doc.cellHeight;
+                var clearH2 = rowsPerLine *doc.cellHeight;
+                var width = doc.ecgDom.fc.width;
+                
+                return {
+                    clearH1: clearH1,
+                    clearH2: clearH2,
+                    width: width
+                };
+            }
+            
+            return false;
+        },
+
+        /**
+         * 擦掉指定的心电图
+         * 
+         * @param name
+         * @returns {boolean}
+         */
         clearECG: function(name) {
             if (name) {
+                var context = doc.context.fcContext;
                 if (innerUtil.isArray(name)) {
                     var len = name.length;
                     for (var i = 0; i < len; i++) {
-
+                        var subName = name[i];
+                        var coor = chart.getClearCoordinate(subName);
+                        if (coor) {
+                            context.save();
+                            context.clearRect(0, coor.clearH1, coor.width, coor.clearH2);
+                            context.restore();
+                        }
                     }
-                } else {
-
+                } else if(innerUtil.isString(name)) {
+                    var coor = chart.getClearCoordinate(name);
+                    if (coor) {
+                        context.save();
+                        context.clearRect(0, coor.clearH1, coor.width, coor.clearH2);
+                        context.restore();
+                    }
                 }
+                
+                return true;
             }
 
             return false;
