@@ -104,6 +104,10 @@ descriptionWords : {
 
 doc.rowsPerLine表示每条心电图占用几行。
 
+<h3>doc.colsPerSecond</h3>
+
+doc.colsPerSecond表示每秒钟占用多少列。
+
 <h3>16、doc.bc</h3>
 后面会将与doc.ecgDom.bc相关的样式设置等信息放到doc.bc对象中。该对象的结构如下：
 

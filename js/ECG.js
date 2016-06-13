@@ -95,6 +95,7 @@ var ECG = (function() {
         },
 
         rowsPerLine: 5,        // 每条心电图占用几行
+        colsPerSecond: 5,   // 每秒占用几列
         isInit:      false,   // ECG对象是否初始化
         ifPoint:     true,      // ECG.ecgDom.bc是否要画点
         bcDataUrl:   null,     // ECG.ecgDom.bc绘制内容的导出的base64格式的图片
@@ -620,7 +621,7 @@ var ECG = (function() {
             // 绘制背景的列
             {
                 if (!cellWidth) {
-                    cellWidth = 40;
+                    cellWidth = 50;
                 }
                 context.strokeStyle = doc.lineColor;
                 /**
@@ -632,7 +633,7 @@ var ECG = (function() {
                     num    = 1;
 
                 for (i; i < tWidth; i += cellWidth) {
-                    if (num % 5 == 0) {
+                    if (num % doc.colsPerSecond == 0) {
                         context.beginPath();
                         context.strokeWidth = 1;
                         context.moveTo(i, 0);
@@ -661,7 +662,7 @@ var ECG = (function() {
                      * 这里行的起始位置的横坐标为doc.marginL,
                      * 因为canvas的border是从距离左边doc.marginL的地方开始画的
                      */
-                    if (num % 5 != 0) {
+                    if (num % doc.rowsPerLine != 0) {
                         context.moveTo(doc.marginL, j + 0.5);
                     } else {
                         context.moveTo(doc.marginL, j);
