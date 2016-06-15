@@ -89,12 +89,11 @@ baseY：number类型
 <h3>7、innerUtil.drawECG()方法</h3>
 
 ```javascript
-innerUtil.drawECG(name, x, y);
+innerUtil.drawECG(name, v);
 
 参数：
 name：要绘制的心电的名字
-x：本次绘制终点x坐标
-y：本次绘制终点y坐标
+v：本次绘制终点心电的电压
 
 返回值：无
 ```
@@ -118,4 +117,29 @@ innerUtil.isString(obj);
 obj：要检测的对象
 
 返回值：如果被检测对象为字符串则返回true，否则返回false
+```
+<h3>10、innerUtil.resetAllCoordinate()方法</h3>
+
+该方法用于重置所有心电当前位置的坐标为初始坐标。
+
+```javascript
+innerUtil.resetAllCoordinate();
+
+参数： 无
+
+返回值：
+{boolean} 初始成功返回true，否则返回false。
+```
+<h3>11、innerUtil.isNumber()方法</h3>
+
+该方法用于检测入参是否为Number类型。
+
+```javascript
+innerUtil.isNumber(obj);
+
+参数：
+obj：要检测的对象
+
+返回值：
+{boolean}： 如果入参为Number类型则返回true，否则返回false
 ```

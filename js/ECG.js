@@ -28,7 +28,7 @@ var ECG = (function() {
         height:     1000,     // ECG容器的高度
         marginL:    1,      // canvas左边边距,用来存放说明性的文字
         tWidth:     1001,     // canvas元素的总宽度
-        fcWidth:    14400,    // fc宽度
+        fcWidth:    18000,    // fc宽度
         fcHeight:   800,     // fc高度
         cellWidth:  50,       // 背景单元格宽度
         cellHeight: 50,       // 背景单元格高度
@@ -36,7 +36,9 @@ var ECG = (function() {
         lineColor:        'orange',   // 背景线条颜色
         lineWidth:        1,    // 背景线条宽度
         dotColor:         'orange',     // 点的样式
-        dotWidth:         2,        // 点的大小,
+        dotWidth:         1,        // 点的大小,
+        originPosition: 4,  // 描述文字以及心电图的基点位置在第几行
+
         descriptionWords: {
             style:    {    // descriptionWords描述文字样式配置
                 v1:    {
@@ -91,6 +93,19 @@ var ECG = (function() {
             pacer: {
                 x: 1,
                 y: 760
+            }
+        },
+        // 主要存放doc.ecgDom.fc的配置信息，后面会将前面的配置逐步放到fc中
+        fc: {
+            gain: {     // 存放增益的配置信息
+                std: 10,    // 增益的标准：10mm/mv
+                cur: 20,     // 产品中的当前增益：20mm/mv,
+                mul: 2,     // 增益的放大倍数，在修改产品当前增益的时候会相应地修改该放大倍数
+            }, 
+            ps: {   // 存放走速的配置信息，ps == paper speed
+                std: 25,    // 标准走纸速度：25mm/s
+                cur: 25,    // 产品中的当前走纸速度：25mm/s,
+                mul: 1,     // 走速的放大倍数，在修改产品当前走速的时候会相应地修改该放大倍数
             }
         },
 
@@ -225,7 +240,7 @@ var ECG = (function() {
          */
         getBaseY: function(name) {
             var index = doc.descriptionWords.style[name].index;
-            var position = doc.descriptionWords.position;
+            var position = doc.originPosition;
             var rowsPerLine = doc.rowsPerLine;
             var baseY = doc.cellHeight * (index * rowsPerLine -
                                           (rowsPerLine - position
@@ -236,25 +251,29 @@ var ECG = (function() {
         },
 
         /**
+         * todo 这个地方要根据心电电压计算纵坐标的值
+         * 
          * 根据传入的心电的名字在指定位置绘制指定的心电
          *
          * @param name 要绘制的心电的名字,具体参见doc.coordinate中的对象
-         * @param x 终点的x坐标
-         * @param y 终点的y坐标
+         * @param v 当前要绘制线段终点的心电电压
          */
-        drawECG: function(name, x, y) {
+        drawECG: function(name, v) {
             var context = doc.context.fcContext;
             var coordinate = doc.coordinate[name];
+            var gainMultiple = doc.fc.gain.mul;
+            var psMultiple = doc.fc.ps.mul;
+            var space = doc.cellWidth * doc.colsPerSecond * psMultiple / doc.rate;   // 根据每秒占用的宽度和采样率计算出每条线段的x轴宽度
 
             context.beginPath();
             context.moveTo(coordinate.x, coordinate.y);
             var baseY = innerUtil.getBaseY(name);
-            var destinationX = x;
-            var destinationY = baseY - y;
-            context.lineTo(destinationX, destinationY);
+            var destinationX = coordinate.x;
+            var destinationY = baseY - v * gainMultiple;
+            context.lineTo(destinationX + 0.5, destinationY);
 
             {
-                coordinate.x = destinationX;
+                coordinate.x = destinationX + space;
                 coordinate.y = destinationY;
             }
 
@@ -289,6 +308,19 @@ var ECG = (function() {
         },
 
         /**
+         * 检测对象是否为数字
+         * @param obj
+         * @returns {boolean}
+         */
+        isNumber: function(obj) {
+           if(obj && Object.prototype.toString.call(obj) == '[object Number]') {
+               return true;
+           }
+            
+            return false;
+        },
+
+        /**
          * 获取所有选中的要显示的心电的名字
          *
          * @param checkboxNam
@@ -305,6 +337,25 @@ var ECG = (function() {
             }
 
             return chkNames;
+        },
+
+        /**
+         * 重置所有的心电坐标
+         * 
+         * @returns {boolean}
+         */
+        resetAllCoordinate: function() {
+            var coor = doc.coordinate;
+            var keys = Object.keys(coor);
+            var len = keys.length;
+            
+            for (var i = 0; i <len; i++) {
+                var subKey = keys[i];
+                coor[subKey]['x'] = doc.marginL;
+                coor[subKey]['y'] = ((doc.descriptionWords.style[subKey]['index'] -1) * doc.rowsPerLine + doc.originPosition) * doc.cellHeight;
+            }
+            
+            return true;
         }
     };
 
@@ -338,8 +389,9 @@ var ECG = (function() {
         },
 
         /**
-         * 设置ECG.doc.ecgDom.fc的宽度和高度
+         * 设置doc.ecgDom.fc的宽度和高度
          * @param param
+         * @returns {boolean}
          */
         setFcWH: function(param) {
             if (typeof param !== 'object') {
@@ -347,12 +399,16 @@ var ECG = (function() {
                 return false;
             } else {
                 if ('width' in param) {
+                    doc.fcWidth = param.width;
                     doc.ecgDom.fc.width = param.width;
                 }
                 if ('height' in param) {
+                    doc.height = param.height;
                     doc.ecgDom.fc.height = param.height;
                 }
             }
+            
+            return true;
         },
 
         /**
@@ -464,7 +520,7 @@ var ECG = (function() {
          * @returns {boolean}
          */
         setDescriptionWords: function() {
-            var position = doc.descriptionWords.position;
+            var position = doc.originPosition;
             var style = doc.descriptionWords.style;
             var keys = Object.keys(style);
 
@@ -718,48 +774,47 @@ var ECG = (function() {
             var fcWidth = fc.width;
             var fcHeight = fc.height;
             context.clearRect(0, 0, fcWidth, fcHeight);
+         
+            // 将所有心电线段的坐标重置
+            innerUtil.resetAllCoordinate();
 
             return true;
         },
 
         /**
-         * 绘制心电图中的V1这条线当前位置到点[x,y]的线段
+         * 绘制心电图中的V1这条线当前位置到下一位置的线段
          *
-         * @param x
-         * @param y
+         * @param v
          */
-        drawV1: function(x, y) {
-            innerUtil.drawECG('v1', x, y);
+        drawV1: function(v) {
+            innerUtil.drawECG('v1', v);
         },
 
         /**
-         * 绘制心电图中的V5这条线当前位置到点[x,y]的线段
+         * 绘制心电图中的V5这条线当前位置到下一位置的线段
          *
-         * @param x
-         * @param y
+         * @param v
          */
-        drawV5: function(x, y) {
-            innerUtil.drawECG('v5', x, y);
+        drawV5: function(v) {
+            innerUtil.drawECG('v5', v);
         },
 
         /**
-         * 绘制心电图中的avf这条线当前位置到点[x,y]的线段
+         * 绘制心电图中的avf这条线当前位置到下一位置的线段
          *
-         * @param x
-         * @param y
+         * @param v
          */
-        drawAvf: function(x, y) {
-            innerUtil.drawECG('avf', x, y);
+        drawAvf: function(v) {
+            innerUtil.drawECG('avf', v);
         },
 
         /**
-         * 绘制心电图中的pacer这条线当前位置到点[x,y]的线段
+         * 绘制心电图中的pacer这条线当前位置到下一位置的线段
          *
-         * @param x
-         * @param y
+         * @param v
          */
-        drawPacer: function(x, y) {
-            innerUtil.drawECG('pacer', x, y);
+        drawPacer: function(v) {
+            innerUtil.drawECG('pacer', v);
         },
 
         /**
@@ -823,6 +878,49 @@ var ECG = (function() {
         },
 
         /**
+         * 用于重新设置增益的值
+         * 
+         * @param val
+         * @returns {boolean}
+         */
+        setGain: function(val) {
+            if(!innerUtil.isNumber(val)) {
+                console.log('error: the type of val is not Number but ' + Object.prototype.toString.call(val));
+                return false;
+            }
+            
+            doc.fc.gain.cur = val;
+            doc.fc.gain.mul = val / doc.fc.gain.std;
+            
+            if (!this.drawFc()) {
+                return false;
+            }
+            
+            return true;
+        },
+        
+        
+        setPs: function(val) {
+            if (!innerUtil.isNumber(val)) {
+                console.log('error: the type of the val is not Number but' + Object.prototype.toString.call(val));
+                return false;
+            }
+            
+            doc.fc.ps.cur = val;
+            var mul = val /doc.fc.ps.std;
+            doc.fc.ps.mul = mul;
+            
+            var fcWidth = doc.cellWidth * doc.colsPerSecond * 72 * mul;
+            outUtil.setFcWH({width: fcWidth});
+            
+            if (!this.drawFc()) {
+                return false;
+            }
+            
+            return true;
+        },
+
+        /**
          * 绘制doc.ecgDom.fc,
          *
          * @returns {boolean}
@@ -840,9 +938,9 @@ var ECG = (function() {
                     var arr = [];
                     var x = doc.marginL;
                     var y = 0;
-                    var space = doc.cellWidth * 5 / doc.rate;
+                    var space = doc.cellWidth * 5 * doc.fc.ps.mul / doc.rate;
                     while (x < doc.fcWidth) {
-                        y = Math.floor(Math.random() * 100);
+                        y = Math.floor(Math.random() * 50);
                         arr.push(y);
                         x += space;
                     }
@@ -856,10 +954,10 @@ var ECG = (function() {
                     for (var i = 0; i < len; i++) {
                         x += space;
                         y = arr[i];
-                        this.drawV1(x + 0.5, y);
-                        this.drawV5(x + 0.5, y);
-                        this.drawAvf(x + 0.5, y);
-                        this.drawPacer(x + 0.5, y);
+                        this.drawV1(y);
+                        this.drawV5(y);
+                        this.drawAvf(y);
+                        this.drawPacer(y);
                     }
                 }
             }

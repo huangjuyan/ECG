@@ -91,7 +91,7 @@ descriptionWords : {
                         text   : 'avf'
                     },
                 },
-                position : 4 // 可选项, 描述文字在自己的区域内第几行
+                position : 4 // 可选项, 描述文字在自己的区域内第几行, 该字段在2016_06_14_01版本中废弃
 			},
 ```
 
@@ -109,6 +109,7 @@ doc.rowsPerLine表示每条心电图占用几行。
 doc.colsPerSecond表示每秒钟占用多少列。
 
 <h3>16、doc.bc</h3>
+
 后面会将与doc.ecgDom.bc相关的样式设置等信息放到doc.bc对象中。该对象的结构如下：
 
 ```javascript
@@ -139,4 +140,26 @@ doc.coordinate = {
 
 <h3>18、doc.rate</h3>
 
-器械的采样频率。默认值为200.
+器械的采样频率。默认值为125.
+
+<h3>19、doc.fc</h3>
+
+后面会将与doc.ecgDom.fc相关的样式等设置信息放到doc.fc对象中。该对象的结构如下：
+
+```javascript
+doc.fc = {
+	gain: {	// 存放增益相关的配置信息
+		std: 10,	// 医学标准增益：10mm/mv
+		cur: 20,	// 产品中使用的默认增益：20mm/mv
+		mul: 2, // 增益的放大倍数，在修改cur时会相应地修改该放大倍数的数值
+	},
+	ps: {		// 存放走速相关的配置信息
+		std: 25,		// 医学标准走纸速度：25mm/s
+		cur: 25,		// 产品中使用的默认走纸速度：25mm/s
+		mul: 1, // 走速的放大倍数，在修改cur时会相应地修改该放大倍数的数值
+	}
+}
+```
+<h3>20、doc.originPosition</h3>
+
+存放描述文字以及心电图的基点位置在第几行，用于代替原来doc.descriptionWords.position字段，因为该字段要同时描述心电图的基点以及描述文字的基点，放在doc.descriptionWords对象中不合适。

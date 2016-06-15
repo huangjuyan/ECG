@@ -26,12 +26,34 @@
 <!-- canvas container -->
 <div class="btn-wrap">
     <button id="begin">开始</button>
+    <label for="gain">增益
+        <select id="gain">
+            <option value="5">5mm/mv</option>
+            <option value="10">10mm/mv</option>
+            <option value="20" selected>20mm/mv</option>
+        </select>
+    </label>
+    <label for="ps">
+        走速
+        <select id="ps">
+            <option value="12.5">12.5mm/s</option>
+            <option value="25" selected>25mm/s</option>
+            <option value="50">50mm/s</option>
+        </select>
+    </label>
+
 </div>
 <div id="canvas"></div>
 <script>
     $(function() {
         $('#begin').on('click', function() {
             ECG.chart.drawFc();
+        });
+        $('#gain').on('change', function() {
+           console.log($(this).val());
+        });
+        $('#ps').on('change', function() {
+            console.log($(this).val());
         });
     });
 </script>

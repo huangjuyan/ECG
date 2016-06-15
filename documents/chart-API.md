@@ -32,11 +32,10 @@ chart.drawBc();
 这三个方法分别用于绘制指定的心电图线段，但是内部均调用innerUtil.drawECG()方法，只不过参数```name```的值不同。
 
 ```javascript
-chart.drawV1(x, y);
+chart.drawV1(v);
 
 参数：
-x：要绘制的心电线段终点的x坐标
-y：要绘制的心电线段终点的y坐标
+v：要绘制的心电线段终点的心电电压
 
 返回值：无
 ```
@@ -87,5 +86,23 @@ name：可以为字符串或者数组，例'avf', ['v1', 'pacer', 'avf']。
 返回值：
 清除成功返回true，否则返回false
 ```
+
+<h3>chart.setGain()方法</h3>
+
+该方法用于重新设置心电的增益值，入参要求必须为数字，包括整型和浮点类型，不能是字符串形式的数字。
+
+```javascript
+chart.setGain(val);
+
+参数：
+val：要设置的新的的增益
+
+返回值：
+{boolean} 设置成功返回true，否则返回false
+```
+
+<h3>chart.setPs()方法</h3>
+
+该方法用于重新设置心电的走速，入参要求必须为数字，包括整型和浮点类型，不能是字符串形式的数字。
 
 <h3>chart.drawFc()方法</h3>
