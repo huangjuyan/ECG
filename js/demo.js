@@ -38,8 +38,9 @@ $(function () {
                     'ossId': 40
                 }),
                 success: function(data) {
-                    console.log(data);
-                    debugger
+                    window.result = data.result;
+                    window.hwLeadConfig = result.hwLeadConfig;
+                    window.ecgPartBlocks = result.ecgPartBlocks;
                 }
             }
         )

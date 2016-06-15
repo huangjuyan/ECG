@@ -115,7 +115,13 @@ var ECG = (function() {
         ifPoint:     true,      // ECG.ecgDom.bc是否要画点
         bcDataUrl:   null,     // ECG.ecgDom.bc绘制内容的导出的base64格式的图片
 
-        rate: 125      // 采样频率
+        rate: 125,      // 采样频率
+        
+        ecgData: {
+            result: {},
+            ecgPartBlocks: [],
+            hwLeadConfig: []
+        }
     };
 
     /**
@@ -898,8 +904,12 @@ var ECG = (function() {
             
             return true;
         },
-        
-        
+
+        /**
+         * 用于重新设置走速的值
+         * @param val
+         * @returns {boolean}
+         */
         setPs: function(val) {
             if (!innerUtil.isNumber(val)) {
                 console.log('error: the type of the val is not Number but' + Object.prototype.toString.call(val));
