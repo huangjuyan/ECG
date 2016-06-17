@@ -33,35 +33,27 @@ var ECG = (function () {
             cellWidth  : 50,       // 背景单元格宽度
             cellHeight : 50,       // 背景单元格高度
 
-            lineColor      : 'orange',   // 背景线条颜色
-            lineWidth      : 1,    // 背景线条宽度
-            dotColor       : 'orange',     // 点的样式
-            dotWidth       : 1,        // 点的大小,
             originPosition : 2,  // 描述文字以及心电图的基点位置在第几行
 
             descriptionWords : {
                 style    : {    // descriptionWords描述文字样式配置
                     V1    : {
                         ifDraw : true,
-                        color  : '#333',
                         index  : 1,
                         text   : 'V1'
                     },
                     V5    : {
                         ifDraw : true,
-                        color  : '#333',
                         index  : 2,
                         text   : 'V5'
                     },
                     aVF   : {
                         ifDraw : true,
-                        color  : '#333',
                         index  : 3,
                         text   : 'aVF'
                     },
                     Pacer : {
                         ifDraw : true,
-                        color  : '#333',
                         index  : 4,
                         text   : 'Pacer'
                     }
@@ -70,10 +62,7 @@ var ECG = (function () {
             },
             // 主要存放doc.ecgDom.bc的配置信息,后面会将前面的配置逐步放到bc中
             bc               : {
-                border : {
-                    style : 'red',  // 边框样式
-                    width : 1       // 边框宽度
-                },
+                // todo 暂时没有内容   
             },
             // 主要存放doc.ecgDom.fc的配置信息，后面会将前面的配置逐步放到fc中
             fc               : {
@@ -89,10 +78,10 @@ var ECG = (function () {
                 },
                 // 放置ecg每条心电的样式
                 ecgStyle   : {
-                    V1    : 'blue',
-                    V5    : 'red',
-                    aVF   : '#333',
-                    Pacer : '#333'
+                    V1    : '#000',
+                    V5    : '#000',
+                    aVF   : '#000',
+                    Pacer : '#000'
                 },
                 // 主要存放心电图当前的位置
                 coordinate : {
@@ -123,10 +112,49 @@ var ECG = (function () {
 
             rate : 125,      // 采样频率
 
+            // 存放从服务端获取到的心电片段数据
             ecgData : {
                 result        : {},
                 ecgPartBlocks : [],
                 hwLeadConfig  : []
+            },
+
+            // 存放当前心电主题样式
+            theme : {
+                background : '#fff',
+                font       : '#000',
+                grid       : '#ff859d',    // 边框及点的颜色
+                line       : '#000',        // 心电图线段的颜色
+                lineWidth  : 1,       // 边框的宽度
+                dotWidth   : 1         // 点的宽度
+            },
+
+            // 存放所有的配置信息
+            themes : {
+                default : {
+                    background : '#fff',
+                    font       : '#000',
+                    grid       : '#ff859d',    // 边框及点的颜色
+                    line       : '#000',        // 心电图线段的颜色
+                    lineWidth  : 1,
+                    dotWidth   : 1
+                },
+                theme2  : {
+                    background : '#333',
+                    font       : '#3ff936',
+                    grid       : '#ccc',    // 边框及点的颜色
+                    line       : '#3ff936', // 心电图线段的颜色
+                    lineWidth  : 1,
+                    dotWidth   : 1
+                },
+                theme3  : {
+                    background : '#eff9ff',
+                    font       : '#000',
+                    grid       : '#ccc',    // 边框及点的颜色
+                    line       : '#000',    // 心电图线段的颜色
+                    lineWidth  : 1,
+                    dotWidth   : 1
+                }
             }
         };
 
@@ -628,7 +656,7 @@ var ECG = (function () {
 
                     bcContext.beginPath();
                     // 修改字体样式
-                    bcContext.fillStyle = subStyle.color;
+                    bcContext.fillStyle = doc.theme.font;
                     // x,y分别为fillText的横坐标和纵坐标
                     var x = doc.marginL;
                     var y = (subStyle.index * doc.rowsPerLine -
@@ -652,11 +680,10 @@ var ECG = (function () {
              * 设置背景中的边框样式
              */
             setBorder : function () {
-                var border = doc.bc.border;
                 var context = doc.context.bcContext;
                 context.beginPath();
-                context.strokeStyle = border.style;
-                context.strokeWidth = border.width;
+                context.strokeStyle = doc.theme.grid;
+                context.strokeWidth = doc.theme.lineWidth;
                 // 这里绘制边框时左边要留出doc.marginL的宽度,用来放置说明文字
                 context.rect(doc.marginL - 0.5, 0, doc.width, doc.height);
                 context.stroke();
@@ -706,6 +733,44 @@ var ECG = (function () {
 
                 return true;
             },
+
+            /**
+             * 获取所有主题的名字,以数组的形式返回
+             *
+             * @returns {Array}
+             */
+            getAllThemes : function () {
+                return Object.keys(doc.themes);
+            },
+
+            /**
+             * 通过主题名字设置在doc.themes中预定义好的主题
+             *
+             * @param name
+             */
+            setTheme : function (name) {
+                if (!name || !innerUtil.isString(name)) {
+                    console.log('error: parameter is wrong, type String expected.');
+
+                    return false;
+                }
+
+                if (!doc.themes.hasOwnProperty(name)) {
+                    console.log('error: name can not find in doc.themes, please check.');
+
+                    return false;
+                }
+
+                var theme = doc.themes[ name ];
+                doc.theme = theme;
+
+                if (!chart.drawBc()) {
+                    return false;
+                }
+
+                return true;
+            }
+
         };
 
         /**
@@ -803,7 +868,8 @@ var ECG = (function () {
                     if (!cellWidth) {
                         cellWidth = 50;
                     }
-                    context.strokeStyle = doc.lineColor;
+                    context.strokeStyle = doc.theme.grid;
+                    context.strokeWidth = doc.theme.lineWidth;
                     /**
                      * 这里i的初始值应为width+doc.marginL,
                      * 因为边框距离canvas左边距为doc.marginL,
@@ -834,8 +900,8 @@ var ECG = (function () {
                         cellHeight = cellWidth;
                     }
                     context.beginPath();
-                    context.strokeStyle = doc.lineColor;
-                    context.strokeWidth = doc.lineWidth;
+                    context.strokeStyle = doc.theme.grid;
+                    context.strokeWidth = doc.theme.lineWidth;
                     var num = 1;
                     for (var j = cellHeight; j < doc.height; j += cellHeight) {
                         /**
@@ -857,7 +923,7 @@ var ECG = (function () {
                     if (ifPoint) {
                         var dotMargin = Math.floor(doc.cellWidth / 5);
                         var context = doc.context.bcContext;
-                        context.fillStyle = doc.dotColor;
+                        context.fillStyle = doc.theme.grid;
 
                         var i = dotMargin + doc.marginL;
                         for (i; i < doc.tWidth; i += dotMargin) {
@@ -867,7 +933,7 @@ var ECG = (function () {
                                 for (var j = dotMargin; j < doc.height; j += dotMargin) {
                                     if ((j % doc.cellHeight
                                         ) != 0) {    // 行分割线处不打点
-                                        context.rect(i, j, doc.dotWidth, doc.dotWidth);
+                                        context.rect(i, j, doc.theme.dotWidth, doc.theme.dotWidth);
                                     }
                                 }
                             }

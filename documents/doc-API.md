@@ -41,12 +41,6 @@ context: {
 
 bcContext | fcContext分别为ECG.doc.ecgDom.bc｜ECG.doc.ecgDom.fc的语境context，初始值为null。
 
-<h3>8、 lineColor</h3>
-分别为背景边框与背景分割线的颜色，默认为红色，背景点的颜色与lineColor相同
-
-<h3>8、lineWidth</h3>
-分别为背景边框与背景分割线的宽度，默认为1px，背景点默认为一个像素的点
-
 <h3>9、doc.marginL</h3>
 canvas左边边距，左边的边距部分用来存放解释说明性的文字。默认值为100，可通过ECG.doc.marginL获取或者设置。
 
@@ -58,12 +52,6 @@ doc.ecgDom.bc中单元格的宽度。
 
 <h3>12、doc.cellHeight</h3>
 doc.ecgDom.bc中单元格的高度。
-
-<h3>13、doc.pointColor</h3>
-doc.ecgDom.bc中单元格中点的颜色
-
-<h3>13、doc.pointWidth</h3>
-doc.ecgDom.bc中单元格中点的宽度
 
 <h3>14、doc.descriptionWordsStyle</h3>
 doc.ecgDom.bc中描述三条心电图多说明文字配置，该属性是一个js对象，具体结构如下：
@@ -114,10 +102,7 @@ doc.colsPerSecond表示每秒钟占用多少列。
 
 ```javascript
 doc.bc = {
-	border: {
-		style: '#red',	// border的样式，可以是一个css颜色字符串
-		width: number		// border的宽度
-	}
+	// todo 暂时没有内容，原来的border被删除，使用doc.theme中的样式替代
 }
 ```
 
@@ -192,3 +177,30 @@ ecgData = {
 ```
 
 其中hwLeadConfig中数据的排序与ecgPartBlocksData数组中数据的排序一一对应。
+
+### doc.theme
+
+存放当前心电的主题样式，具体结构如下：
+
+```javascript
+theme: {
+	background: '',
+	font: '',
+	grid: '',
+	line: '',
+	lineWidth: 1,
+	dotWidth: 1
+}
+```
+
+### doc.themes
+
+新增几个备用的主题样式，具体结构如下：
+
+```javascript
+themes: {
+	default: {结构同theme}，
+	theme1: {结构同theme},
+	......
+}
+```

@@ -149,3 +149,30 @@ obj：js对象，里面存储每条心电的样式，内部结构如下：
  返回值：
  {boolean}：设置成功返回true，否则返回false
 ```
+
+### outUtil.getAllThemes()方法
+
+该方法用于获取所有ECG主题的名字，所有主题的名字会以数组的形式返回。对于获取的主题的名字，可以通过outUtil.setTheme()方法设置主题样式。
+
+```javascript
+outUtil.getAllThemes();
+
+参数：无
+
+返回值：
+｛Array}: 所有主题名字组成的数组
+```
+
+### outUtil.setTheme()方法
+
+该方法用于设置当前ECG的主题，主题名字可以通过outUtil.getAllThemes()方法获取。
+
+```javascript
+outUtil.setTheme(name);
+
+参数：
+name：在ECG.doc.themes中预定义好的主题的名字
+
+返回值：
+{boolean}: 设置成功返回true，否则返回false
+```
