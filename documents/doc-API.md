@@ -121,23 +121,6 @@ doc.bc = {
 }
 ```
 
-<h3>17、doc.coordinate</h3>
-
-该对象用于存放每条心电图当前的绘制位置。结构如下：
-
-```javascript
-doc.coordinate = {
-	v1: {
-		x: 1,
-		y: 160
-	},
-	v5: {
-		...
-	}
-}
-```
-每绘制一段指定的心电，都会调用该对象存储一次指定的值。
-
 <h3>18、doc.rate</h3>
 
 器械的采样频率。默认值为125.
@@ -157,9 +140,55 @@ doc.fc = {
 		std: 25,		// 医学标准走纸速度：25mm/s
 		cur: 25,		// 产品中使用的默认走纸速度：25mm/s
 		mul: 1, // 走速的放大倍数，在修改cur时会相应地修改该放大倍数的数值
+	},
+	// 放置ecg每条心电的样式
+	ecgStyle: {
+		v1: '#333',
+		v5: '#333',
+		...
+	},
+	// 该对象用于存放每条心电图当前的绘制位置。结构如下：
+	coordinate: {
+		v1: {
+			x: 1,
+			y: 160
+		},
+		v5: {},
+		...
 	}
 }
 ```
+
 <h3>20、doc.originPosition</h3>
 
 存放描述文字以及心电图的基点位置在第几行，用于代替原来doc.descriptionWords.position字段，因为该字段要同时描述心电图的基点以及描述文字的基点，放在doc.descriptionWords对象中不合适。
+
+### doc.ecgData
+
+存放72秒心电片段的数据，具体结构如下：
+
+```json
+ecgData = {
+	result: {},
+	ecgPartBlocks: [
+		{
+			ecgPartBlocksData: [
+				[],
+				[]
+			],
+			ecgPartBlocksHead: {
+				headTime: 20160616142537,
+				...
+			}
+		},
+		...
+	],
+	hwLeadConfig: [
+		'V1',
+		'V5',
+		...
+	],
+}
+```
+
+其中hwLeadConfig中数据的排序与ecgPartBlocksData数组中数据的排序一一对应。

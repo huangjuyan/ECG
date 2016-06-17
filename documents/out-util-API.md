@@ -115,3 +115,37 @@ boolean：true | false
 ```javascript
 outUtil.setBorder();
 ```
+
+### outUtil.setEcgData()方法
+
+该方法用于将从服务端获取到的数据保存到ECG.doc.ecgData中，绘图方法中直接从doc.ecgData中获取相关的数据绘制心电图。
+
+```javascript
+outUtil.setEcgData(result);
+
+参数：
+result：从服务端获取到的心电数据中的result部分
+
+返回值：
+{boolean}：设置成功返回true，否则返回false
+```
+
+**注：result为服务端返回的数据中的result部分。**
+
+### outUtil.setEcgStyle()方法
+
+该方法用于设置每条心电的样式，设置的信息会保存在ECG.doc.fc.ecgStyle对象中。
+
+```javascript
+outUtil.setEcgStyle(obj);
+
+参数：
+obj：js对象，里面存储每条心电的样式，内部结构如下：
+ {
+ 	v1: 'red',
+ 	v5: 'red'
+ }
+ 
+ 返回值：
+ {boolean}：设置成功返回true，否则返回false
+```

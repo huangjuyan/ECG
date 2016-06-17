@@ -108,6 +108,7 @@ obj：要检测的对象
 
 返回值：如果被检测对象为数组返回true，否则返回false
 ```
+
 <h3>9、innerUtil.isString()方法</h3>
 
 ```javascript
@@ -118,6 +119,7 @@ obj：要检测的对象
 
 返回值：如果被检测对象为字符串则返回true，否则返回false
 ```
+
 <h3>10、innerUtil.resetAllCoordinate()方法</h3>
 
 该方法用于重置所有心电当前位置的坐标为初始坐标。
@@ -130,6 +132,7 @@ innerUtil.resetAllCoordinate();
 返回值：
 {boolean} 初始成功返回true，否则返回false。
 ```
+
 <h3>11、innerUtil.isNumber()方法</h3>
 
 该方法用于检测入参是否为Number类型。
@@ -142,4 +145,59 @@ obj：要检测的对象
 
 返回值：
 {boolean}： 如果入参为Number类型则返回true，否则返回false
+```
+
+### 12、innerUtil.isObject()方法
+
+该方法用于检测入参是否为Objec类型。
+
+```javascript
+innerUtil.isObject(obj);
+
+参数：
+obj：要检测的对象
+
+返回值：
+{boolean}：如果入参为Object类型则返回true，否则返回false。
+```
+
+### 13、innerUtil.isEmptyObj()方法
+
+该方法用于检测入参是否为空的object。
+
+```javascript
+innerUtil.isEmptyObj(obj);
+
+参数：
+obj：要检测的对象
+
+返回值：
+{boolean}：入参为空返回true，否则返回false。
+```
+
+### innerUtil.getEcgIndex()方法
+
+该方法用于获取对应的心电数据在ECG.doc.ecgData.ecgPartBlocks[n][ecgPartBlockData]中的位置。
+
+```javascript
+innerUtil.getEcgIndex(name);
+
+参数：
+name：要搜索的心电的名字
+
+返回值：
+{*}：找不到返回false，否则返回对应的index
+```
+
+### innerUtil.getAllDrawECG()方法
+
+该方法用于获取所有要绘制的心电的名字，这些获取到的名字用于在doc.ecgData.hwLeadConfig中查找对应的心电数据的下标。
+
+```javascript
+innerUtil.getAllDrawECG();
+
+参数：无
+
+返回值：
+［］：所有要绘制的心电名字的数组
 ```
